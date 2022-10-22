@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="fileboard">
+	<typeAlias alias="fileboardvo" type="kr.or.ddit.multi.vo.FileBoardVo"/>
+	
+	<resultMap class="kr.or.ddit.multi.vo.FileInfoVo" id="finfo">
+		<result property="ino" column="INO"/>
+		<result property="bno" column="BNO"/>
+		<result property="filename" column="FILENAME"/>
+		<result property="originalname" column="ORIGINALNAME"/>
+		<result property="filesize" column="FILESIZE"/>
+	</resultMap>
+	
+	<resultMap class="kr.or.ddit.multi.vo.FileBoardVo" id="fboard">
+		<result property="bno" column="BNO"/>
+		<result property="title" column="TITLE"/>
+		<result property="content" column="CONTENT"/>
+		<result property="filelist" column="BNO" select="fileboard.getInfo"/>
+	</resultMap>
+	
+	<select id="getInfo" parameterClass="int" resultMap="finfo">
+		select * from fileinfo where BNO = #bno#
+	</select>
+	
+	<select id="selectFileBoard" resultMap="fboard">
+		select * from multiboard
+	</select>
+	
+	<insert id="insertFileBoard" parameterClass="fileboardvo">
+		<selectKey keyProperty="bno" resultClass="int">
+			select seq_fileboard_no.nextval from dual
+		</selectKey>
+		
+		insert into multiboard
+		values(
+			#bno#
+			,#title#
+			,#content#		
+		)
+		
+	</insert>
+	
+</sqlMap>

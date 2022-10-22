@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="fileinfo">
+	<typeAlias alias="fileinfovo" type="kr.or.ddit.multi.vo.FileInfoVo"/>
+	
+	<insert id="insertFileInfo" parameterClass="map">
+		<selectKey keyProperty="ino" resultClass="int">
+			select seq_fileinfo_ino.nextval
+		</selectKey>
+		
+		insert All into FileInfo
+			<iterate property="list">
+				into FileInfo values(
+					 #ino#
+					,#list[].bno#
+					,#list[].filename#
+					,#list[].originalname#
+					,#list[].size#				
+				)
+			</iterate>
+				select * from dual
+				<!-- select에 의해 하나의 행을 리턴받아서  하나씩 
+				 테이블에 insert  한다. -->
+	</insert>
+	
+</sqlMap>

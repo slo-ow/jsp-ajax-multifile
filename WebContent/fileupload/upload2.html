@@ -1,0 +1,144 @@
+<!DOCTYPE html5>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>jQuery ajax fileupload (ajax 파일업로드)</title>
+
+<!-- jQuery import -->
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<!-- jQuery Form Plugin 이용 -->
+<script src="../js/jquery.form.min.js"></script>
+
+<style type="text/css">
+	#test {text-align: center;}
+</style>
+</head>
+
+<body>
+<h3>jQuery ajax fileupload (ajax 파일업로드)</h3>
+<form name="multiform" id="multiform" action="/MultiController"
+                                      method="POST" enctype="multipart/form-data">
+<table width="20%" cellpadding="5" cellspacing="0" border="1" align="center" 
+style="border-collapse:collapse; border:1px gray solid;">
+	<tr>
+		<td>
+		title: <input type="text" name="title"  value="" style="margin-left:26px;"/>	
+		</td>
+	</tr>
+	<tr>
+		<td>
+		content :<input type="text" name="content"  value="" />
+		</td>
+	</tr>
+	<tr id="test2">
+		<td>
+		 <!-- 단일 파일업로드 -->
+    	<input type="file" name="file" />
+    	<input type="button" class="addFile" value="추가"/>
+		</td>
+	</tr>
+	<tr>
+		<td id="test">
+    	<input type="submit" id="btnSubmit" value="전송"/>
+		</td>
+	</tr>
+</table>     
+    
+    
+    <!-- 다중 파일업로드  -->
+    photo :<input type="file" name="photo" /> <br/> 
+    photo :<input type="file" name="photo" /> <br/>
+    photo :<input type="file" name="photo" /> <br/>
+    
+   
+</form>    
+
+
+<div id="result">
+    
+</div>
+
+<script>
+/*jQuery form 플러그인을 사용하여 폼데이터를 ajax로 전송*/
+
+var downGroupCnt =0; //다운로드그룹 개수카운트
+
+$(function(){
+    
+	//동적버튼추가
+	$("#test2").on('click','.addFile',function(){
+		var codeHTML;
+		codeHTML += "<tr><td><input type='file' name='file'/>";
+		codeHTML += "<input type='button' class='addFile' value='추가'/></td></tr>";
+		$("#test2").before(codeHTML);
+	});
+	
+    //폼전송 : 해당폼의 submit 이벤트가 발생했을경우 실행  
+    $('#multiform').ajaxForm({
+       cache: false,
+       dataType:"json",
+       //보내기전 validation check가 필요할경우
+       beforeSubmit: function (data, frm, opt) {
+           //console.log(data);
+           alert("전송전!!");
+           return true;
+       },
+       //submit이후의 처리
+       success: function(data, statusText){
+           
+           alert("전송성공!!");
+           console.log(data); //응답받은 데이터 콘솔로 출력         
+           //$("#result").empty(); //내용 비우기, 업로드 후 하나의 그룹만 볼려면 사용
+           
+           //업로드한 파일을 다운로드할수있도록 화면 구성
+           $("#result").append("<h3>("+(++downGroupCnt)+") 다운로드</h3>");
+           $("#result").append("제목:"+data.title+"<br/>");
+           $("#result").append("설명:"+data.description+"<br/>");
+         
+           if(data.photo){
+               $("#result").append("포토:<br/>");           
+               $.each(data.photo, function(index, item){
+                   var link = "FileDownload?f="+item.uploadedFileName+"&of="+item.fileName;
+                   $("#result").append("<a href='"+ link +"' download>"+item.fileName+"</a>");
+                   $("#result").append("<br/>");                   
+               });
+           }           
+           if(data.file){
+              var link = "FileDownload?f="+data.file.uploadedFileName+"&of="+data.file.fileName;
+              $("#result").append("파일 :<a href='"+ link +"' download>"+data.file.fileName+"</a>");
+              $("#result").append("<br/>");
+           }
+           
+           //다운로드시 크롬에서 다음 오류 발생.
+           //오류 : Resource interpreted as Document but transferred with MIME type 
+           //       application/octet-stream 
+           //해결 :
+           //You can specify the HTML5 download attribute in your <a> tag.
+           //<a href='http://example.com/archive.zip' download>Export</a>
+           //https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-download
+                                 
+           $('#multiform')[0].reset(); //폼 초기화(리셋);
+           
+           //IE에서 폼 리셋후 input[type=file] 초기화 안되는 문제. 
+           //(파일이름은 지워지지만 files 프로퍼티에는 파일정보 남아있음.)
+           //참고 : http://javaking75.blog.me/220073388169
+           //console.log(navigator.userAgent);           
+           if (/(MSIE|Trident)/.test(navigator.userAgent)) {
+               // ie 일때 input[type=file] init.
+               $("#multiform input[type=file]").each(function(index){
+                   $(this).replaceWith( $(this).clone(true) );
+               });        
+           }
+       },
+       //ajax error
+       error: function(e){
+           alert("에러발생!!");
+           console.log(e);
+       }                               
+    });
+});
+
+</script>
+
+</body>
+</html>
